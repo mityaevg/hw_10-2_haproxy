@@ -62,3 +62,38 @@ systemctl reload haproxy.service
 **http://10.0.2.15:888/stats**:
 
 <kbd>![Статистика в веб-интерфейсе](img/stats_web-interface.png)</kbd>
+
+### Задание 2
+
+1. Подключим еще один simple python-сервер на порту **:7777**:
+```
+mkdir http3
+cd http3
+nano index.html
+```
+<kbd>![Содержимое файла index.html -сервер 3](img/index_html_server3.png)</kbd>
+
+Запустим **Server 3** в отдельной вкладке консоли:
+```
+mityaevg@haproxy-server:~/http3$ python3 -m http.server 7777 --bind 0.0.0.0
+```
+<kbd>![Запуск -сервер 3](img/simple_python_server3_running.png)</kbd>
+
+2. Настроим балансировку **weighted round-robin** на Layer 7 модели **OSI** и вес для
+каждого из серверов согласно заданию:
+```
+nano /etc/haproxy/haproxy.cfg
+```
+В конфиг-файл добавим следующий раздел:
+```
+backend web_servers    # секция бэкенд
+        mode http # балансировка на L7 OSI
+        balance roundrobin # Метод балансировки Round-robin
+        option httpchk
+        http-check send meth GET uri /index.html
+        server s1 127.0.0.1:8888 weight 2 check # Вес 2 для Сервера 1
+        server s2 127.0.0.1:9999 weight 3 check # Вес 3 для Сервера 2
+        server s3 127.0.0.1:7777 weight 4 check # Вес 4 для Сервера 3
+```
+
+3. 
