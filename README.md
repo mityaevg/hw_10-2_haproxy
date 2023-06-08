@@ -61,7 +61,7 @@ systemctl reload haproxy.service
 Скриншот, отображающий статистику запросов через веб-интерфейс, доступный по адресу
 **http://10.0.2.15:888/stats**:
 
-<kbd>![Статистика в веб-интерфейсе](img/stats_web-interface.png)</kbd>
+<kbd>![Статистика в веб-интерфейсе](img/stats_web-interface1.png)</kbd>
 
 ### Задание 2
 
@@ -96,4 +96,28 @@ backend web_servers    # секция бэкенд
         server s3 127.0.0.1:7777 weight 4 check # Вес 4 для Сервера 3
 ```
 
-3. 
+3. Настройка балансировки **только HTTP-трафика**, адресованного домену **example.local**:
+
+```
+frontend example  # секция фронтенд
+        mode http
+        bind :8088
+        acl ACL_example.local hdr(host) -i example.local
+        use_backend web_servers if ACL_example.local
+```
+
+4. Проверка работоспособности настроек, внесенных в конфигурационный файл:
+```
+curl -H 'Host: example.local' http://127.0.0.1:8088
+```
+Скриншот, отображающий перенаправление запросов на разные серверы при обращении к **HAProxy**:
+
+<kbd>![Перенаправление запросов на s1, s2, s3](img/layer7_http_round-robin_example.local_queries.png)</kbd>
+
+Скриншот, отображающий статистику запросов через веб-интерфейс, доступный по адресу
+**http://10.0.2.15:888/stats**:
+
+<kbd>![Статистика в веб-интерфейсе](img/stats_web-interface2.png)</kbd>
+
+
+
